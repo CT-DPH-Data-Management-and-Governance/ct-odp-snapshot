@@ -16,11 +16,13 @@ app = marimo.App(width="medium", app_title="data.ct.gov snapshot")
 
 @app.cell(hide_code=True)
 def _():
+    import sys
+
     import altair as alt
     import marimo as mo
     import pandas as pd
 
-    return alt, mo, pd
+    return alt, mo, pd, sys
 
 
 @app.cell(hide_code=True)
@@ -35,12 +37,29 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(DATA, pd):
-    assets = pd.read_csv(
-        str(DATA / "assets.csv"),
+def _(DATA, pd, sys):
+    def read_csv(name: str, **kwargs):
+        """Read one of the ETL's CSVs, locally or over HTTP.
+
+        GitHub Pages serves these with `Content-Encoding: gzip`. The browser
+        has already decompressed the body by the time Python sees it, but the
+        header survives, so pandas tries to gunzip plain text and raises
+        BadGzipFile. `open_url` hands back the decoded text instead.
+        """
+        source = str(DATA / name)
+
+        if sys.platform == "emscripten":
+            from pyodide.http import open_url
+
+            return pd.read_csv(open_url(source), **kwargs)
+
+        return pd.read_csv(source, **kwargs)
+
+    assets = read_csv(
+        "assets.csv",
         parse_dates=["scraped_at", "created_at", "updated_at", "data_updated_at"],
     )
-    tags = pd.read_csv(str(DATA / "tags.csv"))
+    tags = read_csv("tags.csv")
 
     scraped_at = assets["scraped_at"].max()
     return assets, scraped_at, tags
