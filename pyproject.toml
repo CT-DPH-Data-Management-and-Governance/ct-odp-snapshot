@@ -1,0 +1,28 @@
+[project]
+name = "ct-odp-snapshot"
+version = "0.1.0"
+description = "Daily snapshot of the assets published on data.ct.gov"
+readme = "README.md"
+authors = [
+    { name = "Alexander Senetcky", email = "Alexander.Senetcky@ct.gov" },
+]
+requires-python = ">=3.13"
+dependencies = [
+    "polars>=1.42.1",
+    "pydantic-settings>=2.14.2",
+    "sodapy>=2.2.0",
+]
+
+[project.scripts]
+etl = "ct_odp_snapshot.etl:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "altair>=5.5.0",
+    "marimo>=0.23.16",
+    "pandas>=2.3.1",
+]

@@ -1,0 +1,57 @@
+name: Daily snapshot
+
+on:
+  schedule:
+    # 09:00 UTC — early morning in Connecticut, after any overnight portal jobs.
+    - cron: "0 9 * * *"
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# One deploy at a time; a queued run is not worth cancelling a live one.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: uv sync --all-groups
+
+      - name: Run ETL (load and replace)
+        env:
+          ODP_API_KEY: ${{ secrets.ODP_API_KEY }}
+          ODP_DOMAIN: data.ct.gov
+        run: uv run etl
+
+      - name: Build the WASM app
+        run: uv run marimo export html-wasm app/snapshot.py -o dist --mode run
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

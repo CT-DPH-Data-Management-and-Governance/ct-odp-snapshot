@@ -1,0 +1,12 @@
+.env
+.venv/
+__pycache__/
+*.pyc
+__marimo__/
+
+# ETL output — regenerated on every run, never committed
+app/public/*.csv
+app/public/*.json
+
+# marimo wasm build output
+dist/
