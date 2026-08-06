@@ -24,7 +24,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
 
-      - uses: astral-sh/setup-uv@v9
+      # setup-uv stopped publishing a floating major tag after v7, so this
+      # one is pinned exactly; the actions/* below all have one.
+      - uses: astral-sh/setup-uv@v9.0.0
         with:
           enable-cache: true
 
