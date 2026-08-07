@@ -204,11 +204,10 @@ def _(bar, counts, mo, tags):
 def _(mo):
     mo.md(
         """
-        ## Is it being kept up
+        ## Freshness
 
         Freshness is `data_updated_at` — when the data behind the asset last
-        moved, not when someone edited its description. An asset that has not
-        moved in a year is either finished, or a pipeline nobody is running.
+        moved, not when someone edited its description.
         """
     )
     return
@@ -227,7 +226,7 @@ def _(BLUE, ORANGE, alt, assets, mo, pd):
         assets.groupby("freshness").size().reindex(_order).fillna(0).reset_index(name="n")
     )
     _fresh["share"] = _fresh["n"] / _fresh["n"].sum()
-    # The two trailing buckets are the ones that need somebody to look.
+    # Highlight the two oldest buckets separately from the rest.
     _fresh["cold"] = _fresh["freshness"].isin(["over a year", "never / unknown"])
 
     _base = alt.Chart(_fresh, title="Assets by age of last data update").encode(
@@ -261,8 +260,8 @@ def _(BLUE, ORANGE, alt, assets, mo, pd):
         [
             _chart,
             mo.md(
-                "Orange is the backlog: no data update in over a year, or no "
-                "update timestamp at all."
+                "Orange: no data update in over a year, or no update "
+                "timestamp at all."
             ),
         ]
     )
@@ -301,11 +300,9 @@ def _(BLUE, alt, assets, mo, pd):
 def _(mo):
     mo.md(
         """
-        ## Can somebody find it and trust it
+        ## Metadata completeness
 
-        Metadata completeness across the whole portal. A missing contact or a
-        missing license does not break the download — it breaks the person who
-        has to decide whether they may use the data.
+        Share of assets with each field set, across the whole portal.
         """
     )
     return
@@ -360,9 +357,8 @@ def _(mo):
         """
         ## Who publishes
 
-        The catalog exposes the account that **owns** each asset. That is who
-        has actually published, not who holds publisher rights and never used
-        them — treat this as the floor.
+        The catalog records the account that **owns** each asset — the
+        account that published it, not everyone with publishing rights.
         """
     )
     return
@@ -522,10 +518,7 @@ def _(assets, mo):
     mo.vstack(
         [
             mo.md("### Coldest datasets"),
-            mo.md(
-                "Oldest `data_updated_at` first. Some of these are finished "
-                "products; the rest are pipeline candidates."
-            ),
+            mo.md("Oldest `data_updated_at` first."),
             mo.ui.table(_cold, page_size=10, selection=None),
         ]
     )
